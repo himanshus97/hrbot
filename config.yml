@@ -1,11 +1,35 @@
-# Configuration for Rasa NLU.
-# https://rasa.com/docs/rasa/nlu/components/
 language: en
-pipeline: supervised_embeddings
+pipeline:
+- name: WhitespaceTokenizer
+  intent_tokenization_flag: true
+  intent_split_symbol: +
+- name: RegexFeaturizer
+- name: CRFEntityExtractor
+- name: EntitySynonymMapper
+- name: CountVectorsFeaturizer
+- name: EmbeddingIntentClassifier
+- name: DucklingHTTPExtractor
+  url: http://0.0.0.0:8000
+  locale: en_IND
+  dimensions:
+  - time
+  - number
+  - ordinal
+  - duration
+  timezone: Asia/Kolkata
 
-# Configuration for Rasa Core.
-# https://rasa.com/docs/rasa/core/policies/
 policies:
-  - name: MemoizationPolicy
-  - name: KerasPolicy
-  - name: MappingPolicy
+- name: KerasPolicy
+  epochs: 50
+  featurizer:
+  - name: MaxHistoryTrackerFeaturizer
+    max_history: 5
+    state_featurizer:
+    - name: BinarySingleStateFeaturizer
+- core_threshold: 0.3
+  name: FallbackPolicy
+  nlu_threshold: 0.6
+- name: MemoizationPolicy
+  max_history: 5
+- name: FormPolicy
+- name: MappingPolicy
